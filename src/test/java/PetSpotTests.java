@@ -90,11 +90,29 @@ public class PetSpotTests {
         WebElement finalPriceCatFood = firstCatFood.findElement(By.xpath("//span[@data-price-type='finalPrice']/span[@class='price']"));
         String finalPriceCatFoodText = finalPriceCatFood.getText();
         Assertions.assertEquals("1.921,00 RSD", finalPriceCatFoodText);
+        WebElement wishlistButton = firstCatFood.findElement(By.xpath("//div[@data-role='add-to-links']"));
+        //step0 By.xpath for example
+        //step1 start with double "",
+        //step2 double //
+        //step3 add a tag div, span, a
+        //step4 optional [], than @, atribute, =, '' expected value
+        wishlistButton.click();
+        Assertions.assertEquals("https://petspot.rs/customer/account/login/", driver.getCurrentUrl());
 
-        //Assertions.assertEquals
-        //description = driver.find_element(By.className(text data-content-type="[text]"));
-        //WebElement priceForCatFood = priceForCatFood.findElementBy.xpath()".t//p span[@class='price']"));
+    }
+
+    @Test
+    void checkAllTheProductsHasDescription() {
+        driver.get("https://petspot.rs/macke/hrana-za-macke.html");
+        List<WebElement> listOfCatsFood = driver.findElements(By.className("product-item-info"));
+        for (int i = 0; i < listOfCatsFood.size(); i++) {
+           WebElement currentElement = listOfCatsFood.get(i);
+           WebElement currenElementDescription = currentElement.findElement(By.xpath("//a[@class='product-item-link']"));
+           Assertions.assertFalse(currenElementDescription.getText().isEmpty());
+           System.out.println(currenElementDescription.getText());
+        }
     }
 
 
 }
+
