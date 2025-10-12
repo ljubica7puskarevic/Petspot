@@ -6,9 +6,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.awt.*;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class PetSpotTests {
     public static String BASE_URL = "https://petspot.rs/";
@@ -102,12 +107,107 @@ public class PetSpotTests {
         List<WebElement> listOfCatsFood = driver.findElements(By.className("product-item-info"));
         for (int i = 0; i < listOfCatsFood.size(); i++) {
            WebElement currentElement = listOfCatsFood.get(i);
-           WebElement currenElementDescription = currentElement.findElement(By.xpath("//a[@class='product-item-link']"));
+           WebElement currenElementDescription = currentElement.findElement(By.xpath(".//a[@class='product-item-link']"));
            Assertions.assertFalse(currenElementDescription.getText().isEmpty());
            System.out.println(currenElementDescription.getText());
         }
     }
 
+    @Test
+    void checkForSearchBarExist() {
+        List<WebElement> searchInputCollection = driver.findElements(By.xpath("//input[@class='amsearch-input']"));
+        Assertions.assertEquals(1, searchInputCollection.size());
+    }
 
+    @Test
+    void checkForSearchBarExistSpecificPage() {
+        driver.get("https://petspot.rs/psi/hrana-za-pse.html");
+        List<WebElement> searchInputCollection = driver.findElements(By.xpath("//input[@class='amsearch-input']"));
+        Assertions.assertEquals(1, searchInputCollection.size());
+    }
+
+    @Test
+    void checkForProductListNavigation() {
+        driver.get("https://petspot.rs/psi/hrana-za-pse.html");
+        WebElement pageItems = driver.findElement(By.xpath("//ul[@class='items pages-items']"));
+        List<WebElement> pageItemsCollections = pageItems.findElements(By.xpath(".//li[contains(@class, 'item')]"));
+        WebElement firstItem = pageItemsCollections.get(0);
+        String firstItemClass = firstItem.getAttribute("class");
+        Assertions.assertEquals("item current", firstItemClass);
+        WebElement nextItem = pageItemsCollections.get(pageItemsCollections.size() - 1);
+        nextItem.click();
+        pageItems = driver.findElement(By.xpath("//ul[@class='items pages-items']"));
+        pageItemsCollections = pageItems.findElements(By.xpath(".//li[contains(@class, 'item')]"));
+        WebElement backItem = pageItemsCollections.get(0);
+        String backItemClass = backItem.getAttribute("class");
+        Assertions.assertEquals("item pages-item-previous", backItemClass);
+        WebElement secondItem = pageItemsCollections.get(2);
+        String secondItemClass = secondItem.getAttribute("class");
+        Assertions.assertEquals("item current", secondItemClass);
+        backItem.click();
+        pageItems = driver.findElement(By.xpath("//ul[@class='items pages-items']"));
+        pageItemsCollections = pageItems.findElements(By.xpath(".//li[contains(@class, 'item')]"));
+        firstItem = pageItemsCollections.get(0);
+        firstItemClass = firstItem.getAttribute("class");
+        Assertions.assertEquals("item current", firstItemClass);
+        Assertions.assertFalse(firstItemClass.contains("pages-item-previous"));
+
+    }
+
+    @Test
+    void checkAddItemToCart() throws InterruptedException {
+        driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+        WebElement mackeCategory = driver.findElement(By.xpath("//a[@href='https://petspot.rs/macke.html']"));
+        mackeCategory.click();
+        driver.manage().window().fullscreen();
+        List<WebElement> listOfCatsFood = driver.findElements(By.className("product-item-info"));
+        WebElement firstCatFood = listOfCatsFood.get(0);
+        WebElement addToCart = firstCatFood.findElement(By.xpath(".//button[@title='DODAJTE U KORPU']"));
+        WebElement zeroBeforeClick = driver.findElement(By.className("empty"));
+        Assertions.assertTrue(zeroBeforeClick.isDisplayed());
+        addToCart.click();
+        WebElement deleteItem = driver.findElement(By.xpath("//div[@data-block='minicart']"));
+        deleteItem.click();
+        Thread.sleep(5000);
+        WebElement pressDeleteIcon = driver.findElement(By.cssSelector("a[title='Uklonite']"));
+        pressDeleteIcon.click();
+        WebElement removeItemFromCart = driver.findElement(By.className("action-accept"));
+        removeItemFromCart.click();
+        WebElement zeroAfterClick = driver.findElement(By.className("empty"));
+        Assertions.assertTrue(zeroAfterClick.isDisplayed());
+    }
+
+    @Test
+    void checkIfSearchBarIsWorking() {
+        WebElement inputField = driver.findElement(By.cssSelector("input.amsearch-input"));
+        inputField.sendKeys("aca");
+        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@title='Clear Field']")));
+        WebElement deleteButton = driver.findElement(By.xpath("//button[@title='Clear Field']"));
+        Assertions.assertTrue(deleteButton.isDisplayed());
+    }
+
+    @Test
+    void checkSearchResultCount() {
+        WebElement inputField = driver.findElement(By.cssSelector("input.amsearch-input"));
+        inputField.sendKeys("aca");
+        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.className("amsearch-product-list")));
+        WebElement searchProductList = driver.findElement(By.className("amsearch-product-list"));
+        List<WebElement> listOfSearchProductItems = searchProductList.findElements(By.className("amsearch-item"));
+        Assertions.assertEquals(4, listOfSearchProductItems.size());
+    }
+
+    @Test
+    void checkFirstItemFromSearchBar() {
+        WebElement inputField = driver.findElement(By.cssSelector("input.amsearch-input"));
+        inputField.sendKeys("aca");
+        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.className("amsearch-product-list")));
+        WebElement searchProductList = driver.findElement(By.className("amsearch-product-list"));
+        List<WebElement> listOfSearchProductItems = searchProductList.findElements(By.className("amsearch-item"));
+        WebElement firstItemFromSearchItems = listOfSearchProductItems.get(0);
+        String actualTitle = firstItemFromSearchItems.findElement(By.xpath(".//a[@title]")).getDomAttribute("title");
+        Assertions.assertTrue(actualTitle.contains("Aca"));
+    }
 }
-
