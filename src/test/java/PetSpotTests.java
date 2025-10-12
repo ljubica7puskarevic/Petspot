@@ -210,4 +210,19 @@ public class PetSpotTests {
         String actualTitle = firstItemFromSearchItems.findElement(By.xpath(".//a[@title]")).getDomAttribute("title");
         Assertions.assertTrue(actualTitle.contains("Aca"));
     }
+
+    @Test
+    void checkSearchResaltsDetails() {
+        WebElement inputField = driver.findElement(By.cssSelector("input.amsearch-input"));
+        inputField.sendKeys("aca");
+        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.className("amsearch-product-list")));
+        WebElement searchProductList = driver.findElement(By.className("amsearch-product-list"));
+        List<WebElement> listOfSearchProductItems = searchProductList.findElements(By.className("amsearch-item"));
+        for (int i = 0; i < listOfSearchProductItems.size(); i++) {
+            WebElement priceValue = listOfSearchProductItems.get(i).findElement(By.className("price"));
+           String priceText = priceValue.getText();
+           Assertions.assertTrue(priceText.contains("RSD"));
+        }
+    }
 }
