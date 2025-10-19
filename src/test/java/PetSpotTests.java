@@ -223,6 +223,7 @@ public class PetSpotTests {
             WebElement priceValue = listOfSearchProductItems.get(i).findElement(By.className("price"));
            String priceText = priceValue.getText();
            Assertions.assertTrue(priceText.contains("RSD"));
+           //need to write more testsgit status
         }
     }
 }
